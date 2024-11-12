@@ -157,11 +157,11 @@ def highest_response_ratio_next_algo(process: list):
 
 def shortest_remaining_time_first_algo(process: list):
     srtf_algo = sorted(process, key=lambda x: x["at"])
-    copy_srtf = copy.deepcopy(process)
-    copy_srtf = sorted(copy_srtf, key=lambda x: x["at"])
     completed_process = []
     current_time = 0
     first_response_times = {}
+    copy_srtf = copy.deepcopy(process)
+    copy_srtf = sorted(copy_srtf, key=lambda x: x["at"])
 
     while srtf_algo:
         available_process = [p for p in srtf_algo if p["at"] <= current_time and p["bt"] > 0]
@@ -189,10 +189,11 @@ def shortest_remaining_time_first_algo(process: list):
                 srtf_algo.remove(shortest_time)  # Remove the completed process from the main list
         else:
             current_time = srtf_algo[0]["at"]
-        
-        completed_process = sorted(completed_process, key=lambda x:x["at"])
-        for i, p in enumerate(completed_process):
-            p["bt"] = copy_srtf[i]["bt"]
+
+    completed_process = sorted(completed_process, key=lambda x:x["at"])
+    for i, p in enumerate(completed_process):
+        p["bt"] = copy_srtf[i]["bt"]
+        completed_process.append(processes_preemptive(p["id"], p["at"], p["bt"], p["ct"], p["fs"]))
                              
     return completed_process
 
@@ -232,20 +233,14 @@ def final_calculation_non(l: list): # Calculate completion time for each process
 
         # Append Process object to the final list
         final_process_list.append(processes_non_preemptive(process["id"], process["at"], process["bt"], ct))
-
-    # Sort the final list by process ID
-    final_process_list = sorted(final_process_list, key=lambda x: x.id)
     return final_process_list
 
-def final_calculation_preem(l: list):
-    completed_process = []
-    for p in l:
-        completed_process.append(processes_preemptive(p["id"], p["at"], p["bt"], p["ct"], p["fs"]))
-    completed_process = sorted(completed_process, key=lambda x: x.id)
+    # Sort the final list by process ID
+def sorted_completed_list(completed_process: list):
+    sorted_completed_process = sorted(completed_process, key=lambda x: x.id)
+    return sorted_completed_process
 
-    return completed_process
-
-def calculate_ave(num: int, l: list):
+def calculate_ave_non_preem(num: int, l: list):
     avg_tat = 0 # turnaround time and waiting time iniate at 0
     avg_wat = 0
     for process in l:
@@ -255,28 +250,65 @@ def calculate_ave(num: int, l: list):
     final_wt: float = (f"{avg_wat/num:.2f}")
     return final_tat, final_wt
 
-def display_non(l: list, final_tat: float, final_wt: float): 
-    print("PID\tAT\tBT\tCT\tTAT\tWT") # Display header
+def calculate_ave_preem(num: int, sorted_completed_process: list):
+    avg_tat = 0 # turnaround time and waiting time iniate at 0
+    avg_wt = 0
+    for process in sorted_completed_process:
+        avg_tat += process.turnaround()
+        avg_wt += process.waiting()
+        avg_rt += process.response()
+    final_tat: float = (f"{avg_tat/num:.2f}") # average of tat, wt, rt programmed with 2 decimals
+    final_wt: float = (f"{avg_wt/num:.2f}")
+    final_rt: float = (f"{avg_wt/num:.2f}")
+    return final_tat, final_wt, final_rt
+
+def display_non_preem(l: list, fcfs_algo:list, final_tat: float, final_wt: float):
+    # Gannt Chart Output
+    print("\nGantt Chart")
+    for process in fcfs_algo: 
+        process.gantt_chart_id()
+
+    print("\n0", end="")
+
+    for process in(fcfs_algo):
+        process.gantt_chart_ct()
+
+    #Table Output
+    print("\n\nPID\tAT\tBT\tCT\tTAT\tWT") # Display header
     for process in l: # display each user input and calculation
         process.display_non_preemptive()
-    print(f"Avg_turnaround:{final_tat}\nAvg_Waitingtime:{final_wt}") # display average final_tat and final_wat
+    print(f"\t\t    Average    {final_tat}    {final_wt}") # display average final_tat and final_wt
+    print("\nThank you for using the program!")
 
-def display_preem(l: list, final_tat: float, final_wt: float): 
+def display_preem(sorted_completed_process: list, completed_process: list, final_tat: float, final_wt: float, final_rt: float): 
+    # Gannt Chart Output
+    print("\nGantt Chart")
+    for process in completed_process: 
+        process.gantt_chart_id()
+
+    print("\n0", end="")
+
+    for process in(completed_process):
+        process.gantt_chart_ct()
+
+    #Table Output
     print("PID\tAT\tBT\tCT\tTAT\tWT\tRT") # Display header
-    for process in l: # display each user input and calculation
+    for process in sorted_completed_process: # display each user input and calculation
         process.display_preemptive()
-    print(f"Avg_turnaround:{final_tat}\nAvg_Waitingtime:{final_wt}") # display average final_tat and final_wat
+    print(f"\t\t    Average    {final_tat}    {final_wt}    {final_rt}") # display average final_tat, final_wt and final_rt
+    print("\nThank you for using the program!")
 
 def main():
     num, option, scheduling_type = cpu_scheduling_algo_type()
     if option in {"A", "B", "C", "D"}:
         final_process_list = final_calculation_non(scheduling_type)
-        final_tat, final_wt = calculate_ave(num, final_process_list)
-        display_non(final_process_list, final_tat, final_wt)
+        sorted_process_list = sorted_completed_list(final_process_list)
+        final_tat, final_wt = calculate_ave_non_preem(num, final_process_list)
+        display_non_preem(sorted_process_list, final_process_list, final_tat, final_wt)
     if option in {"E", "F", "G"}:
-        final_process_list = final_calculation_preem(scheduling_type)
-        final_tat, final_wt = calculate_ave(num, final_process_list)
-        display_preem(final_process_list, final_tat, final_wt)
+        final_process_list = sorted_completed_list(scheduling_type)
+        final_tat, final_wt, final_rt = calculate_ave_preem(num, final_process_list)
+        display_preem(final_process_list, scheduling_type, final_tat, final_wt, final_rt)
 
 if __name__ == '__main__':
     main()
