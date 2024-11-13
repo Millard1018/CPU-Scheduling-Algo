@@ -11,6 +11,12 @@ class processes_non_preemptive:
 
     def display_non_preemptive(self):
         print(f"{self.id}\t{self.at}\t{self.bt}\t{self.ct}\t{self.tat}\t{self.wt}")
+    
+    def gantt_chart_id(self): #display each unsorted process id for gantt chart
+        print(f"    P{self.id}", end="  ")
+
+    def gantt_chart_ct(self):#display each ct completion time for gantt chart
+        print(f"\t{self.ct}", end="")
 
     def turnaround(self):
         return self.tat
@@ -31,6 +37,12 @@ class processes_preemptive:
 
     def display_preemptive(self):
         print(f"{self.id}\t{self.at}\t{self.bt}\t{self.ct}\t{self.tat}\t{self.wt}\t{self.rt}")
+
+    def gantt_chart_id(self): #display each unsorted process id for gantt chart
+        print(f"    P{self.id}", end="  ")
+
+    def gantt_chart_ct(self):#display each ct completion time for gantt chart
+        print(f"\t{self.ct}", end="")
 
     def turnaround(self):
         return self.tat
@@ -160,6 +172,8 @@ def shortest_remaining_time_first_algo(process: list):
     completed_process = []
     current_time = 0
     first_response_times = {}
+    gantt_chart_list = []
+    gantt_chart_lib = {}
     copy_srtf = copy.deepcopy(process)
     copy_srtf = sorted(copy_srtf, key=lambda x: x["at"])
 
@@ -169,6 +183,13 @@ def shortest_remaining_time_first_algo(process: list):
         if available_process:
             shortest_time = min(available_process, key=lambda x: x["bt"])
             
+            if not gantt_chart_list or shortest_time["id"] != gantt_chart_list[-1]["id"]:
+                gantt_chart_lib["id"] = shortest_time["id"]
+                gantt_chart_lib["ct"] = current_time
+                gantt_chart_list.append(gantt_chart_lib)
+            else:
+                gantt_chart_list[-1]["ct"] +=1
+
             if shortest_time["id"] not in first_response_times:
                 first_response_times[shortest_time["id"]] = current_time
                 shortest_time["fs"] = current_time
@@ -190,12 +211,13 @@ def shortest_remaining_time_first_algo(process: list):
         else:
             current_time = srtf_algo[0]["at"]
 
+    completed_process_list: list = []
     completed_process = sorted(completed_process, key=lambda x:x["at"])
     for i, p in enumerate(completed_process):
         p["bt"] = copy_srtf[i]["bt"]
-        completed_process.append(processes_preemptive(p["id"], p["at"], p["bt"], p["ct"], p["fs"]))
+        completed_process_list.append(processes_preemptive(p["id"], p["at"], p["bt"], p["ct"], p["fs"]))
                              
-    return completed_process
+    return completed_process_list, gantt_chart_list
 
 def default(): # No CPU Scheduling algorithm choosen
     print("CPU-Scheduling Algotithm selected is either none of the choices or nothing selected.")
@@ -253,13 +275,14 @@ def calculate_ave_non_preem(num: int, l: list):
 def calculate_ave_preem(num: int, sorted_completed_process: list):
     avg_tat = 0 # turnaround time and waiting time iniate at 0
     avg_wt = 0
+    avg_rt = 0
     for process in sorted_completed_process:
         avg_tat += process.turnaround()
         avg_wt += process.waiting()
         avg_rt += process.response()
     final_tat: float = (f"{avg_tat/num:.2f}") # average of tat, wt, rt programmed with 2 decimals
     final_wt: float = (f"{avg_wt/num:.2f}")
-    final_rt: float = (f"{avg_wt/num:.2f}")
+    final_rt: float = (f"{avg_rt/num:.2f}")
     return final_tat, final_wt, final_rt
 
 def display_non_preem(l: list, fcfs_algo:list, final_tat: float, final_wt: float):
@@ -280,19 +303,19 @@ def display_non_preem(l: list, fcfs_algo:list, final_tat: float, final_wt: float
     print(f"\t\t    Average    {final_tat}    {final_wt}") # display average final_tat and final_wt
     print("\nThank you for using the program!")
 
-def display_preem(sorted_completed_process: list, completed_process: list, final_tat: float, final_wt: float, final_rt: float): 
+def display_preem(sorted_completed_process: list, gantt_chart_list: list, final_tat: float, final_wt: float, final_rt: float): 
     # Gannt Chart Output
     print("\nGantt Chart")
-    for process in completed_process: 
-        process.gantt_chart_id()
+    for i, process in enumerate(gantt_chart_list): 
+        print(f"    P{gantt_chart_list[i]['id']}", end="  ")
 
     print("\n0", end="")
 
-    for process in(completed_process):
-        process.gantt_chart_ct()
+    for i, process in enumerate(gantt_chart_list):
+        print(f"\t{gantt_chart_list[i]['ct']}", end="")
 
     #Table Output
-    print("PID\tAT\tBT\tCT\tTAT\tWT\tRT") # Display header
+    print("\n\nPID\tAT\tBT\tCT\tTAT\tWT\tRT") # Display header
     for process in sorted_completed_process: # display each user input and calculation
         process.display_preemptive()
     print(f"\t\t    Average    {final_tat}    {final_wt}    {final_rt}") # display average final_tat, final_wt and final_rt
@@ -306,9 +329,10 @@ def main():
         final_tat, final_wt = calculate_ave_non_preem(num, final_process_list)
         display_non_preem(sorted_process_list, final_process_list, final_tat, final_wt)
     if option in {"E", "F", "G"}:
-        final_process_list = sorted_completed_list(scheduling_type)
+        completed_process_list, gantt_chart_list = scheduling_type
+        final_process_list = sorted_completed_list(completed_process_list)
         final_tat, final_wt, final_rt = calculate_ave_preem(num, final_process_list)
-        display_preem(final_process_list, scheduling_type, final_tat, final_wt, final_rt)
+        display_preem(final_process_list, gantt_chart_list, final_tat, final_wt, final_rt)
 
 if __name__ == '__main__':
     main()

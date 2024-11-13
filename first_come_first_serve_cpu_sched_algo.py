@@ -27,11 +27,11 @@ def user_input()->None:
     print("\n")
     process: list = []
 
-    for i in range(num):
-        print(f'Process {i + 1}')
+    for i in range(1, num+1):
+        print(f'Process {i}')
         at = int(input("Enter the Arrival Time: "))
         bt = int(input("Enter the Burst Time: "))
-        process_info = {"id": i + 1, "at": at, "bt": bt}
+        process_info = {"id": i, "at": at, "bt": bt}
         process.append(process_info)
         print("\n")
     
@@ -69,12 +69,12 @@ def calculate_ave(num: int, sorted_by_id_process: list):
 def display_non_preem(l: list, fcfs_algo:list, final_tat: float, final_wt: float):
     # Gannt Chart Output
     print("\nGantt Chart")
-    for process in fcfs_algo: 
+    for process in fcfs_algo: # display of each id from the class
         process.gantt_chart_id()
 
     print("\n0", end="")
 
-    for process in(fcfs_algo):
+    for process in(fcfs_algo): # display of each ct from the class
         process.gantt_chart_ct()
 
     #Table Output
@@ -85,6 +85,7 @@ def display_non_preem(l: list, fcfs_algo:list, final_tat: float, final_wt: float
     print("\nThank you for using the program!")
 
 def main():
+    # Every variable was the return of the function and being used for another function
     num, process = user_input()
     completed_process_list = first_come_first_serve_algo(process)
     sorted_by_id_process = sorted_processes_list(completed_process_list)
