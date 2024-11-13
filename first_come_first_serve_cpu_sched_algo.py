@@ -22,19 +22,35 @@ class processes_non_preemptive: #for organization of processes
     def waiting(self):
         return self.wt
     
+def validateInt(validNum, range1, range2):
+    while True:
+        try:
+            validNum = int(validNum) 
+            if validNum < range1 or validNum > range2:
+                print(f"Must be at least {range1} and no more than {range2}.")
+                validNum = input("Please enter the number again: ")
+            else:
+                return validNum
+        except ValueError:
+            print("Invalid entry; must be a number without characters!")
+            validNum = input("Please enter the number again: ")
+
 def user_input()->None:
-    num: int = int(input("Enter the Number of Processes: "))
+    num: int = (input("Enter the Number of Processes: "))
+    num = validateInt(num, 2, 100)
+
     print("\n")
     process: list = []
-
     for i in range(1, num+1):
         print(f'Process {i}')
-        at = int(input("Enter the Arrival Time: "))
-        bt = int(input("Enter the Burst Time: "))
+        at: int= (input("Enter the Arrival Time: "))
+        at = validateInt(at, 0, 100)
+        bt: int = (input("Enter the Burst Time: "))
+        bt = validateInt(bt, 0, 100)
         process_info = {"id": i, "at": at, "bt": bt}
         process.append(process_info)
         print("\n")
-    
+
     return num, process
 
 def first_come_first_serve_algo(process: list):

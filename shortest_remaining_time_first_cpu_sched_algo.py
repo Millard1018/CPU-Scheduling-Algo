@@ -23,22 +23,38 @@ class processes_preemptive: # for organization of processes
     def response(self):
         return self.rt
     
+def validateInt(validNum, range1, range2)->int:
+    while True:
+        try:
+            validNum = int(validNum) 
+            if validNum < range1 or validNum > range2:
+                print(f"Must be at least {range1} and no more than {range2}.")
+                validNum = input("Please enter the number again: ")
+            else:
+                return validNum
+        except ValueError:
+            print("Invalid entry; must be a number without characters!")
+            validNum = input("Please enter the number again: ") 
+
 def user_input()->None:
-    num: int = int(input("Enter the Number of Processes: ")) # To how many processess
+    num: int = (input("Enter the Number of Processes: ")) # To how many processess
+    num = validateInt(num, 0, 100)
     print("\n")
     process: list = []
 
     for i in range(1, num+1):
         print(f'Process {i}')
-        at = int(input("Enter the Arrival Time: ")) # To get the arrival time
-        bt = int(input("Enter the Burst Time: ")) # To get the burst time
+        at = (input("Enter the Arrival Time: ")) # To get the arrival time
+        at = validateInt(at, 0, 100)
+        bt = (input("Enter the Burst Time: ")) # To get the burst time
+        bt = validateInt(bt, 0, 100)
         process_info = {"id": i, "at": at, "bt": bt} # All the process entry
         process.append(process_info) #Appending process entry to process
         print("\n")
     
     return num, process
 
-def shortest_remaining_time_first_algo(process: list):
+def shortest_remaining_time_first_algo(process: list)->list:
     srtf_algo = sorted(process, key=lambda x: x["at"]) 
     completed_process = []
     current_time = 0
@@ -95,7 +111,7 @@ def sorted_completed_list(completed_process: list):
     sorted_completed_process = sorted(completed_process, key=lambda x: x.id)
     return sorted_completed_process
 
-def calculate_ave(num: int, sorted_completed_process: list):
+def calculate_ave(num: int, sorted_completed_process: list)->list:
     avg_tat = 0 # turnaround time and waiting time iniate at 0
     avg_wt = 0
     avg_rt = 0
@@ -108,7 +124,7 @@ def calculate_ave(num: int, sorted_completed_process: list):
     final_rt: float = (f"{avg_rt/num:.2f}")
     return final_tat, final_wt, final_rt
 
-def display_preem(sorted_completed_process: list, gantt_chart_list: list, final_tat: float, final_wt: float, final_rt: float): 
+def display_preem(sorted_completed_process: list, gantt_chart_list: list, final_tat: float, final_wt: float, final_rt: float)->list: 
     # Gannt Chart Output
     print("\nGantt Chart")
     for i, process in enumerate(gantt_chart_list): # each id from the gantt chart list is displayed

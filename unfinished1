@@ -84,6 +84,22 @@ def user_input_priority():
     
     return num, process
 
+def user_input_round_robin():
+    num = int(input("Enter the Number of Processes: "))
+    print("\n")
+    process = []
+
+    for i in range(num):
+        print(f'Process {i + 1}')
+        at = int(input("Enter the Arrival Time: "))
+        bt = int(input("Enter the Burst Time: "))
+        process_info = {"id": i + 1, "at": at, "bt": bt}
+        process.append(process_info)
+        print("\n")
+    time_slice = int(input("Enter How much Time-slice: "))
+    
+    return num, process, time_slice
+
 def first_come_first_serve_algo(process: list):
     # Sort processes by arrival time
     fcfs_algo = sorted(process, key=lambda x: x["at"])
@@ -173,7 +189,6 @@ def shortest_remaining_time_first_algo(process: list):
     current_time = 0
     first_response_times = {}
     gantt_chart_list = []
-    gantt_chart_lib = {}
     copy_srtf = copy.deepcopy(process)
     copy_srtf = sorted(copy_srtf, key=lambda x: x["at"])
 
@@ -182,13 +197,6 @@ def shortest_remaining_time_first_algo(process: list):
 
         if available_process:
             shortest_time = min(available_process, key=lambda x: x["bt"])
-            
-            if not gantt_chart_list or shortest_time["id"] != gantt_chart_list[-1]["id"]:
-                gantt_chart_lib["id"] = shortest_time["id"]
-                gantt_chart_lib["ct"] = current_time
-                gantt_chart_list.append(gantt_chart_lib)
-            else:
-                gantt_chart_list[-1]["ct"] +=1
 
             if shortest_time["id"] not in first_response_times:
                 first_response_times[shortest_time["id"]] = current_time
@@ -196,6 +204,12 @@ def shortest_remaining_time_first_algo(process: list):
 
             current_time +=1
             shortest_time["bt"] -= 1
+
+            if not gantt_chart_list or shortest_time["id"] != gantt_chart_list[-1]["id"]:
+                gantt_chart_lib = {"id": shortest_time["id"], "ct": current_time}
+                gantt_chart_list.append(gantt_chart_lib)
+            else:
+                gantt_chart_list[-1]["ct"] = current_time
             
             if shortest_time["bt"] == 0:
                 fs_id = first_response_times[shortest_time["id"]]
@@ -219,6 +233,106 @@ def shortest_remaining_time_first_algo(process: list):
                              
     return completed_process_list, gantt_chart_list
 
+def priority_preemptive_algo(process: list):
+    priority_preem_algo = sorted(process, key=lambda x: x["at"])
+    completed_process = []
+    current_time = 0
+    first_response_times = {}
+    gantt_chart_list = []
+    copy_priority = copy.deepcopy(process)
+    copy_priority = sorted(copy_priority, key=lambda x: x["at"])
+
+    while priority_preem_algo:
+        available_process = [p for p in priority_preem_algo if p["at"] <= current_time and p["bt"] > 0]
+
+        if available_process:
+            shortest_time = max(available_process, key=lambda x: x["pl"])
+
+            if shortest_time["id"] not in first_response_times:
+                first_response_times[shortest_time["id"]] = current_time
+                shortest_time["fs"] = current_time
+
+            current_time +=1
+            shortest_time["bt"] -= 1
+
+            if not gantt_chart_list or shortest_time["id"] != gantt_chart_list[-1]["id"]:
+                gantt_chart_lib = {"id": shortest_time["id"], "ct": current_time}
+                gantt_chart_list.append(gantt_chart_lib)
+            else:
+                gantt_chart_list[-1]["ct"] = current_time
+            
+            if shortest_time["bt"] == 0:
+                fs_id = first_response_times[shortest_time["id"]]
+                # Create a new dictionary for the completed process with the original burst time
+                completed_entry = {
+                    "id": shortest_time["id"],
+                    "at": shortest_time["at"],
+                    "ct": current_time,  
+                    "fs": fs_id
+                    }
+                completed_process.append(completed_entry)
+                priority_preem_algo.remove(shortest_time)  # Remove the completed process from the main list
+        else:
+            current_time = priority_preem_algo[0]["at"]
+
+    completed_process_list: list = []
+    completed_process = sorted(completed_process, key=lambda x:x["at"])
+    for i, p in enumerate(completed_process):
+        p["bt"] = copy_priority[i]["bt"]
+        completed_process_list.append(processes_preemptive(p["id"], p["at"], p["bt"], p["ct"], p["fs"]))
+                             
+    return completed_process_list, gantt_chart_list
+
+def round_robin_algo(process: list, time_slice: int):
+    round_robin_algo = sorted(process, key=lambda x: x["at"])
+    completed_process = []
+    current_time = 0
+    first_response_times = {}
+    gantt_chart_list = []
+    rr_process_copy = copy.deepcopy(process)
+    rr_process_copy = sorted(rr_process_copy, key=lambda x: x["at"])
+
+    while round_robin_algo:
+        available_process = [p for p in round_robin_algo if p["at"] <= current_time and p["bt"] > 0]
+
+        if available_process:
+            shortest_time = min(available_process, key=lambda x: x["at"])
+
+            if shortest_time["id"] not in first_response_times:
+                first_response_times[shortest_time["id"]] = current_time
+                shortest_time["fs"] = current_time
+
+            current_time += time_slice
+            shortest_time["bt"] -= time_slice
+
+            if not gantt_chart_list or shortest_time["id"] != gantt_chart_list[-1]["id"]:
+                gantt_chart_lib = {"id": shortest_time["id"], "ct": current_time}
+                gantt_chart_list.append(gantt_chart_lib)
+            else:
+                gantt_chart_list[-1]["ct"] = current_time
+            
+            if shortest_time["bt"] == 0:
+                fs_id = first_response_times[shortest_time["id"]]
+                # Create a new dictionary for the completed process with the original burst time
+                completed_entry = {
+                    "id": shortest_time["id"],
+                    "at": shortest_time["at"],
+                    "ct": current_time,  
+                    "fs": fs_id
+                    }
+                completed_process.append(completed_entry)
+                round_robin_algo.remove(shortest_time)  # Remove the completed process from the main list
+        else:
+            current_time = round_robin_algo[0]["at"]
+
+    completed_process_list: list = []
+    completed_process = sorted(completed_process, key=lambda x:x["at"])
+    for i, p in enumerate(completed_process):
+        p["bt"] = rr_process_copy[i]["bt"]
+        completed_process_list.append(processes_preemptive(p["id"], p["at"], p["bt"], p["ct"], p["fs"]))
+                             
+    return completed_process_list, gantt_chart_list
+
 def default(): # No CPU Scheduling algorithm choosen
     print("CPU-Scheduling Algotithm selected is either none of the choices or nothing selected.")
     print("Closing the program.")
@@ -230,17 +344,27 @@ def cpu_scheduling_algo_type():
         "B": shortest_job_first_algo,
         "C": priority_non_preemptive_algo,
         "D": highest_response_ratio_next_algo,
-        "E": shortest_remaining_time_first_algo
+        "E": shortest_remaining_time_first_algo,
+        "F": priority_preemptive_algo,
+        "G": round_robin_algo
     }
-    option = input("'A' - First Come First Serve\n'B' - Shortest Job First\n'C' - Priority Pre-Emptive\n'D' - Highest Response Ratio Next\n'E' - Shortest Remaining Time First\nEnter CPU-Scheduling Algorithm: ").upper()
+    print("'A' - First Come First Serve\n'B' - Shortest Job First\n'C' - Priority Non-Pre-Emptive\n'D' - Highest Response Ratio Next")
+    print("'E' - Shortest Remaining Time First\n'F' - Priority Pre-Emptive\n'G' - Round Robin")
+    option = input("Enter CPU-Scheduling Algorithm: ").upper()
     # User will choose what type of CPU Scheduling
     scheduling_type = cpu_scheduling_algorithms.get(option, None)
     if scheduling_type is priority_non_preemptive_algo: # for preemptive and non_preemptive priority
         num, process = user_input_priority() # process/es user input
-        return num, option, scheduling_type(process) 
+        return num, option, scheduling_type(process)
+    
+    if scheduling_type is round_robin_algo:
+        num, process, time_slice = user_input_round_robin
+        return num, process, time_slice, scheduling_type(process)
+    
     if scheduling_type: # Other CPU Scheduling Algorithm
         num, process = user_input()
         return num, option, scheduling_type(process)
+    
     else:
         default() # If user enter none or none on the list
 
