@@ -22,32 +22,32 @@ class processes_non_preemptive: #for organization of processes
     def waiting(self):
         return self.wt
     
-def validateInt(validNum, range1, range2):
-    while True:
-        try:
+def validateInt(validNum, range1, range2): # Error handling in-case of character input
+    while True:# While the input is out of range or a charcter
+        try: 
             validNum = int(validNum) 
-            if validNum < range1 or validNum > range2:
+            if validNum < range1 or validNum > range2: # Number inputted was out of range
                 print(f"Must be at least {range1} and no more than {range2}.")
                 validNum = input("Please enter the number again: ")
-            else:
+            else: # Correct user input
                 return validNum
-        except ValueError:
+        except ValueError: # Value Error encoutered, a character was inputed
             print("Invalid entry; must be a number without characters!")
             validNum = input("Please enter the number again: ")
 
 def user_input()->None:
     num: int = (input("Enter the Number of Processes: "))
-    num = validateInt(num, 2, 100)
+    num = validateInt(num, 2, 100) # Error handling in-case of character input or out-of-range
 
     print("\n")
     process: list = []
     for i in range(1, num+1):
         print(f'Process {i}')
-        at: int= (input("Enter the Arrival Time: "))
-        at = validateInt(at, 0, 100)
-        bt: int = (input("Enter the Burst Time: "))
-        bt = validateInt(bt, 0, 100)
-        process_info = {"id": i, "at": at, "bt": bt}
+        at: int= (input("Enter the Arrival Time: ")) # To get Arrival Time
+        at = validateInt(at, 0, 100) # Error handling in-case of character input or out-of-range
+        bt: int = (input("Enter the Burst Time: ")) # To get Burst tTime
+        bt = validateInt(bt, 0, 100) # Error handling in-case of character input or out-of-range
+        process_info = {"id": i, "at": at, "bt": bt} # Entry to be appended to the process
         process.append(process_info)
         print("\n")
 

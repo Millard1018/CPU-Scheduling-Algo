@@ -23,21 +23,21 @@ class processes_preemptive: # for organization of processes
     def response(self):
         return self.rt
     
-def validateInt(validNum, range1, range2)->int:
-    while True:
-        try:
+def validateInt(validNum, range1, range2): # Error handling in-case of character input
+    while True:# While the input is out of range or a charcter
+        try: 
             validNum = int(validNum) 
-            if validNum < range1 or validNum > range2:
+            if validNum < range1 or validNum > range2: # Number inputted was out of range
                 print(f"Must be at least {range1} and no more than {range2}.")
                 validNum = input("Please enter the number again: ")
-            else:
+            else: # Correct user input
                 return validNum
-        except ValueError:
+        except ValueError: # Value Error encoutered, a character was inputed
             print("Invalid entry; must be a number without characters!")
-            validNum = input("Please enter the number again: ") 
+            validNum = input("Please enter the number again: ")
 
 def user_input()->None:
-    num: int = (input("Enter the Number of Processes: ")) # To how many processess
+    num: int = (input("Enter the Number of Processes: ")) # how many processess
     num = validateInt(num, 0, 100)
     print("\n")
     process: list = []
@@ -45,9 +45,9 @@ def user_input()->None:
     for i in range(1, num+1):
         print(f'Process {i}')
         at = (input("Enter the Arrival Time: ")) # To get the arrival time
-        at = validateInt(at, 0, 100)
+        at = validateInt(at, 0, 100) # Error handling in-case of character input or out-of-range
         bt = (input("Enter the Burst Time: ")) # To get the burst time
-        bt = validateInt(bt, 0, 100)
+        bt = validateInt(bt, 0, 100) # Error handling in-case of character input or out-of-range
         process_info = {"id": i, "at": at, "bt": bt} # All the process entry
         process.append(process_info) #Appending process entry to process
         print("\n")
