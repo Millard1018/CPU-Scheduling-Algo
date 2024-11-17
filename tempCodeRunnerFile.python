@@ -286,15 +286,10 @@ def round_robin_algo(process: list, time_slice: int):
     rr_process_copy = sorted(rr_process_copy, key=lambda x: x["at"])
 
     while round_robin_algo:
-        last_process = []
-        if last_process:
-            available_process = [p for p in last_process if p["at"] <= current_time and p["bt"] > 0]
-        else:
-            available_process = [p for p in round_robin_algo if p["at"] <= current_time and p["bt"] > 0]
-        last_process.append(available_process)
+        available_process = [p for p in round_robin_algo if p["at"] <= current_time and p["bt"] > 0]
 
         if available_process:
-            arrived_first = available_process[0]
+            arrived_first = min(available_process, key=lambda x: x["at"])
 
             if arrived_first["id"] not in first_response_times:
                 first_response_times[arrived_first["id"]] = current_time
@@ -305,7 +300,7 @@ def round_robin_algo(process: list, time_slice: int):
                 arrived_first["bt"] -= time_slice
             else:
                 current_time += arrived_first["bt"]
-                arrived_first["bt"] = 0
+                arrived_first["bt"] -= arrived_first["bt"]
 
             if not gantt_chart_list or arrived_first["id"] != gantt_chart_list[-1]["id"]:
                 gantt_chart_lib = {"id": arrived_first["id"], "ct": current_time}
@@ -324,9 +319,6 @@ def round_robin_algo(process: list, time_slice: int):
                     }
                 completed_process.append(completed_entry)
                 round_robin_algo.remove(arrived_first)  # Remove the completed process from the main list
-            if arrived_first in last_process:
-                last_process.remove(arrived_first)
-                last_process.append(arrived_first)
         else:
             current_time = round_robin_algo[0]["at"]
 
@@ -359,11 +351,11 @@ def cpu_scheduling_algo_type():
     # User will choose what type of CPU Scheduling
     scheduling_type = cpu_scheduling_algorithms.get(option, None)
 
-    if option == "G":
+    if scheduling_type is round_robin_algo:
         num, process, time_slice = user_input_round_robin()
-        return num, option, scheduling_type(process, time_slice)
+        return num, process, scheduling_type(process, time_slice)
 
-    elif option in {'C', 'E'}: # for preemptive and non_preemptive priority
+    elif scheduling_type is priority_non_preemptive_algo or priority_preemptive_algo: # for preemptive and non_preemptive priority
         num, process = user_input_priority() # process/es user input
         return num, option, scheduling_type(process)
     
