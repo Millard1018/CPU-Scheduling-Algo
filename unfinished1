@@ -289,10 +289,10 @@ def round_robin_algo(process: list, time_slice: int):
         last_process = []
         if last_process:
             available_process = [p for p in last_process if p["at"] <= current_time and p["bt"] > 0]
+            last_process.append(available_process)
         else:
             available_process = [p for p in round_robin_algo if p["at"] <= current_time and p["bt"] > 0]
-        last_process.append(available_process)
-
+            
         if available_process:
             arrived_first = available_process[0]
 
