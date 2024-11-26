@@ -286,12 +286,7 @@ def round_robin_algo(process: list, time_slice: int):
     rr_process_copy = sorted(rr_process_copy, key=lambda x: x["at"])
 
     while round_robin_algo:
-        last_process = []
-        if last_process:
-            available_process = [p for p in last_process if p["at"] <= current_time and p["bt"] > 0]
-            last_process.append(available_process)
-        else:
-            available_process = [p for p in round_robin_algo if p["at"] <= current_time and p["bt"] > 0]
+        available_process = [p for p in round_robin_algo if p["at"] <= current_time and p["bt"] > 0]
             
         if available_process:
             arrived_first = available_process[0]
@@ -324,9 +319,16 @@ def round_robin_algo(process: list, time_slice: int):
                     }
                 completed_process.append(completed_entry)
                 round_robin_algo.remove(arrived_first)  # Remove the completed process from the main list
-            if arrived_first in last_process:
-                last_process.remove(arrived_first)
-                last_process.append(arrived_first)
+            if arrived_first in round_robin_algo:
+                round_robin_algo.remove(arrived_first)
+                available_process = [p for p in round_robin_algo if p["at"] <= current_time]
+                last_arrived = max(available_process, key=lambda x:x["at"])
+                insert_index = round_robin_algo.index(last_arrived)
+                round_robin_algo.insert(insert_index, arrived_first)
+            print(available_process)
+            print(last_arrived)
+            print(round_robin_algo)
+            print()
         else:
             current_time = round_robin_algo[0]["at"]
 
