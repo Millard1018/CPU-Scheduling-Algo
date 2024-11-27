@@ -143,7 +143,7 @@ def display_preem(sorted_completed_process: list, gantt_chart_list: list, final_
     print("\nThank you for using the program!")
 
 def main()->None:
-    # Every variable was the return of the function and being used for another function
+    # Every variable was the return of a function and being used for another function
     num, process = user_input() 
     completed_process_list, gantt_chart_list = shortest_remaining_time_first_algo(process)
     sorted_completed_process = sorted_completed_list(completed_process_list)

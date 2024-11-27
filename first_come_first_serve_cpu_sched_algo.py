@@ -101,7 +101,7 @@ def display_non_preem(l: list, fcfs_algo:list, final_tat: float, final_wt: float
     print("\nThank you for using the program!")
 
 def main():
-    # Every variable was the return of the function and being used for another function
+    # Every variable was the return of a function and being used for another function
     num, process = user_input()
     completed_process_list = first_come_first_serve_algo(process)
     sorted_by_id_process = sorted_processes_list(completed_process_list)
