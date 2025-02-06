@@ -1,40 +1,41 @@
 import copy
 
-class processes_non_preemptive:
-    def __init__(self, id, at, bt, ct):
+class processes_non_preemptive: #for organization of processes
+    def __init__(self, id, at, bt, ct): #parameters
         self.id = id
         self.at = at
         self.bt = bt
         self.ct = ct
-        self.tat = self.ct-self.at
-        self.wt = self.tat-self.bt
+        self.tat = self.ct-self.at #turnaround time calculation
+        self.wt = self.tat-self.bt #waiting time calculation
+    def display_non_preemptive(self): #display each processes for the table
+        print(f"P{self.id}\t{self.at}\t{self.bt}\t{self.ct}\t{self.tat}\t{self.wt}")
 
-    def display_non_preemptive(self):
-        print(f"{self.id}\t{self.at}\t{self.bt}\t{self.ct}\t{self.tat}\t{self.wt}")
-    
     def gantt_chart_id(self): #display each unsorted process id for gantt chart
         print(f"    P{self.id}", end="  ")
 
     def gantt_chart_ct(self):#display each ct completion time for gantt chart
         print(f"\t{self.ct}", end="")
 
+    # Used to get the average tat turnaround time and wt waiting time 
     def turnaround(self):
         return self.tat
 
     def waiting(self):
         return self.wt
     
-class processes_preemptive:
-    def __init__(self, id, at, bt, ct, fs):
-        self.id = id
-        self.at = at
-        self.bt = bt
-        self.ct = ct
-        self.fs = fs
-        self.tat = self.ct-self.at
-        self.wt = self.tat-self.bt
-        self.rt = self.fs-self.at
+class processes_preemptive: # for organization of processes
+    def __init__(self, id, at, bt, ct, fs): #parameters
+        self.id = id #process id
+        self.at = at #process arrival time
+        self.bt = bt #process burst time
+        self.ct = ct #process completion time
+        self.fs = fs #process first seen, first seen is when the first time the process started 
+        self.tat = self.ct-self.at #turnaround time calculation
+        self.wt = self.tat-self.bt #waiting time calculation
+        self.rt = self.fs-self.at #response time calculation
 
+    #used to get the average tat, wt and rt
     def display_preemptive(self):
         print(f"{self.id}\t{self.at}\t{self.bt}\t{self.ct}\t{self.tat}\t{self.wt}\t{self.rt}")
 
@@ -46,23 +47,39 @@ class processes_preemptive:
     
     def response(self):
         return self.rt
+    
+def validateInt(validNum, range1, range2): # Error handling in-case of character input
+    while True:# While the input is out of range or a charcter
+        try: 
+            validNum = int(validNum) 
+            if validNum < range1 or validNum > range2: # Number inputted was out of range
+                print(f"Must be at least {range1} and no more than {range2}.")
+                validNum = input("Please enter the number again: ")
+            else: # Correct user input
+                return validNum
+        except ValueError: # Value Error encoutered, a character was inputed
+            print("Invalid entry; must be a number without characters!")
+            validNum = input("Please enter the number again: ")
 
-def user_input():
-    num = int(input("Enter the Number of Processes: "))
+def user_input()->None:
+    num: int = (input("Enter the Number of Processes: "))
+    num = validateInt(num, 2, 100) # Error handling in-case of character input or out-of-range
+
     print("\n")
-    process = []
-
-    for i in range(num):
-        print(f'Process {i + 1}')
-        at = int(input("Enter the Arrival Time: "))
-        bt = int(input("Enter the Burst Time: "))
-        process_info = {"id": i + 1, "at": at, "bt": bt}
+    process: list = []
+    for i in range(1, num+1):
+        print(f'Process {i}')
+        at: int= (input("Enter the Arrival Time: ")) # To get Arrival Time
+        at = validateInt(at, 0, 100) # Error handling in-case of character input or out-of-range
+        bt: int = (input("Enter the Burst Time: ")) # To get Burst tTime
+        bt = validateInt(bt, 0, 100) # Error handling in-case of character input or out-of-range
+        process_info = {"id": i, "at": at, "bt": bt} # Entry to be appended to the process
         process.append(process_info)
         print("\n")
-    
+  
     return num, process
 
-def user_input_priority():
+def user_input_priority(): # same with user_input but this is for priority to get pl
     num = int(input("Enter the Number of Processes: "))
     print("\n")
     process = []
@@ -78,7 +95,7 @@ def user_input_priority():
     
     return num, process
 
-def user_input_round_robin():
+def user_input_round_robin():  # same with user_input but this is for round_robin to get time_slice
     num = int(input("Enter the Number of Processes: "))
     print("\n")
     process = []
@@ -177,7 +194,7 @@ def highest_response_ratio_next_algo(process: list):
     return completed_processes
 
 def shortest_remaining_time_first_algo(process: list):
-    srtf_algo = sorted(process, key=lambda x: x["at"])
+    srtf_algo = sorted(process, key=lambda x: x["at"]) 
     completed_process = []
     current_time = 0
     first_response_times = {}
@@ -191,19 +208,22 @@ def shortest_remaining_time_first_algo(process: list):
         if available_process:
             shortest_time = min(available_process, key=lambda x: x["bt"])
 
-            if shortest_time["id"] not in first_response_times:
-                first_response_times[shortest_time["id"]] = current_time
+            # Condition to get the fs first seen 
+            if shortest_time["id"] not in first_response_times: #each process will be validated if it is already in first_respnse_time
+                first_response_times[shortest_time["id"]] = current_time # the current time will be the basis if when it was first seen
                 shortest_time["fs"] = current_time
 
-            current_time +=1
-            shortest_time["bt"] -= 1
+            current_time +=1 # current time is incrimented for only 1 sec/min 
+            shortest_time["bt"] -= 1 # the bt is dicremented by 1 because it had been processed by 1 only
 
-            if not gantt_chart_list or shortest_time["id"] != gantt_chart_list[-1]["id"]:
-                gantt_chart_lib = {"id": shortest_time["id"], "ct": current_time}
-                gantt_chart_list.append(gantt_chart_lib)
+            # For gantt chart to identify how much time each process was processed
+            if not gantt_chart_list or gantt_chart_list[-1]["id"] != shortest_time["id"]:
+                gantt_chart_dict = {"id": shortest_time["id"], "ct": current_time}
+                gantt_chart_list.append(gantt_chart_dict)
             else:
                 gantt_chart_list[-1]["ct"] = current_time
-            
+
+            #if the process has 0 burst time the process will be appended and it has completed its process
             if shortest_time["bt"] == 0:
                 fs_id = first_response_times[shortest_time["id"]]
                 # Create a new dictionary for the completed process with the original burst time
@@ -213,7 +233,7 @@ def shortest_remaining_time_first_algo(process: list):
                     "ct": current_time,  
                     "fs": fs_id
                     }
-                completed_process.append(completed_entry)
+                completed_process.append(completed_entry) # Appending the completed process
                 srtf_algo.remove(shortest_time)  # Remove the completed process from the main list
         else:
             current_time = srtf_algo[0]["at"]
@@ -226,7 +246,7 @@ def shortest_remaining_time_first_algo(process: list):
                              
     return completed_process_list, gantt_chart_list
 
-def priority_preemptive_algo(process: list):
+def priority_preemptive_algo(process: list): # Same process with SRTF but this use pl to determine who comes first
     priority_preem_algo = sorted(process, key=lambda x: x["at"])
     completed_process = []
     current_time = 0
@@ -239,7 +259,7 @@ def priority_preemptive_algo(process: list):
         available_process = [p for p in priority_preem_algo if p["at"] <= current_time and p["bt"] > 0]
 
         if available_process:
-            priority_process = min(available_process, key=lambda x: x["pl"])
+            priority_process = min(available_process, key=lambda x: x["pl"]) # Use of pl priority level to identify who comes first
 
             if priority_process["id"] not in first_response_times:
                 first_response_times[priority_process["id"]] = current_time
@@ -319,9 +339,9 @@ def round_robin_algo(process: list, time_slice: int):
                     }
                 completed_process.append(completed_entry)
                 round_robin_algo.remove(arrived_first)  # Remove the completed process from the main list
-            if arrived_first in round_robin_algo:
-                available_process = [p for p in round_robin_algo if p["at"] <= current_time]
-                if available_process:
+            if arrived_first in round_robin_algo: # To check if arrived_first is still in the list of round_robin
+                available_process = [p for p in round_robin_algo if p["at"] <= current_time] # To get the process with available time
+                if available_process: # Remove and insert algo to its appropriate place in round_robin
                     insert_index = round_robin_algo.index(available_process[-1])
                     round_robin_algo.remove(arrived_first)
                     round_robin_algo.insert(insert_index, arrived_first)
@@ -361,7 +381,7 @@ def cpu_scheduling_algo_type():
         num, process, time_slice = user_input_round_robin()
         return num, option, scheduling_type(process, time_slice)
 
-    elif option in {'C', 'E'}: # for preemptive and non_preemptive priority
+    elif option in ('C', 'F'): # for preemptive and non_preemptive priority
         num, process = user_input_priority() # process/es user input
         return num, option, scheduling_type(process)
     
